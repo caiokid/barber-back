@@ -36,6 +36,7 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
