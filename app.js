@@ -25,7 +25,12 @@ const server = http.createServer(app);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(cors({ credentials: true }));
+app.use(cors({ 
+  origin: function(origin, callback) {
+    callback(null, origin)
+  },
+  credentials: true 
+}))
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
