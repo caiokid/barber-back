@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -I http://localhost:8080/images/guy.jpg)",
+      "Bash(npm uninstall *)"
+    ]
+  }
+}
