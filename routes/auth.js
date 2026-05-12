@@ -11,9 +11,9 @@ router.post(
   [
     body('email')
     .notEmpty()
-    .withMessage('Email cannot be empty!')
+    .withMessage('O email não pode ser vazio!')
     .isEmail()
-    .withMessage('Please enter a valid email.')
+    .withMessage('Por favor, insira um email válido.')
     .custom((value, { req }) => {
       return User.findOne({ email: value }).then(userDoc => {
         if (userDoc) {
@@ -25,11 +25,11 @@ router.post(
       body('name')
       .trim()
       .notEmpty()
-      .withMessage("Name cannot be empty"),
+      .withMessage("Nome não pode ser vazio!"),
     body('password')
       .trim()
       .isLength({ min: 5 })
-      .withMessage('Password must be at least 5 characters long'),
+      .withMessage('A senha deve conter no mínimo 5 caracteres!'),
   ],signup
 );
 
@@ -37,20 +37,20 @@ router.post('/login',
    [
      body('email')
      .notEmpty()
-     .withMessage('Email cannot be empty!') 
+     .withMessage('O email não pode ser vazio!') 
        .isEmail()
-       .withMessage('Please enter a valid email.')
+       .withMessage('Por favor, insira um email válido.')
        .custom((value, { req }) => {
          return User.findOne({ email: value }).then(userDoc => {
            if (!userDoc) {
-             return Promise.reject('Email not found!');
+             return Promise.reject('E-mail não encontrado! Por favor, verifique suas credenciais.');
            }
          });
        })
        .normalizeEmail(),
      body('password')
        .notEmpty()
-       .withMessage('Password is required')
+       .withMessage('A senha é obrigatória!')
    ],
   login
 );

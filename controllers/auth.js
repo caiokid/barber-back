@@ -49,7 +49,7 @@ const login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      const error = new Error('Email not found.');
+      const error = new Error('E-mail não encontrado! Por favor, verifique suas credenciais.');
       error.statusCode = 404;
       throw error;
     }
@@ -57,7 +57,7 @@ const login = async (req, res, next) => {
     const isEqual = await bcrypt.compare(password, user.password);
 
     if (!isEqual) {
-      const error = new Error('Wrong password!');
+      const error = new Error('Senha incorreta!');
       error.statusCode = 401;
       throw error;
     }
