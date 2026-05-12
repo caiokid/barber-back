@@ -13,7 +13,6 @@ import authRoutes from './routes/auth.js';
 import employsRoutes from './routes/employs.js';
 import userRoutes from './routes/user.js';
 import commentRoutes from './routes/comments.js';
-import timesRoutes from './routes/times.js';
 
 const MongoDB_URI = process.env.MONGODB_URI;
 const PORT = process.env.PORT || 8080;
@@ -41,7 +40,6 @@ app.use('/auth', authRoutes);
 app.use('/employs', employsRoutes);
 app.use('/marcado', userRoutes);
 app.use('/comments', commentRoutes);
-app.use('/times', timesRoutes);
 
 // Middleware de erro genérico
 app.use((error, req, res, next) => {

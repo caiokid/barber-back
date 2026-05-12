@@ -72,6 +72,7 @@ const MarcarHorário = async (req, res, next) => {
 
 const Marcadosy = async (req, res, next) => {
   try {
+    
     const user = await User.findById(req.userId);
 
     if (user) {

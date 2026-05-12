@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const postSchema = new Schema({
-
   email: {
     type: String,
     required: true
