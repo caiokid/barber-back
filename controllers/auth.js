@@ -10,13 +10,20 @@ const signup = async (req, res, next) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
+      const error = new Error('Validação falhou');
       error.statusCode = 422;
       error.data = errors.array();
       throw error;
     }
 
     const { email, name, password } = req.body;
+
+    if(password.length < 5) {
+      const error = new Error('A senha deve ter pelo menos 5 caracteres.');
+      error.data = errors.array();
+      error.statusCode = 422;
+      throw error;
+    }
 
     const hashedPw = await bcrypt.hash(password, 12);
 
@@ -51,7 +58,7 @@ const login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      const error = new Error('Credenciais inválidas.');
+      const error = new Error('E-mail não encontrado.');
       error.statusCode = 401;
       throw error;
     }
@@ -59,7 +66,7 @@ const login = async (req, res, next) => {
     const isEqual = await bcrypt.compare(password, user.password);
 
     if (!isEqual) {
-      const error = new Error('Credenciais inválidas.');
+      const error = new Error('Senha incorreta.');
       error.statusCode = 401;
       throw error;
     }
