@@ -66,6 +66,12 @@ const postSchema = new Schema({
         default: Date.now
       }
     }]
+  },
+  resetToken: {
+    type: String
+  },
+  resetTokenExpira: {
+    type: Date
   }
 
 }, { timestamps: true });

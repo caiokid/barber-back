@@ -24,12 +24,18 @@ const server = http.createServer(app);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(cors({ 
-  origin: function(origin, callback) {
-    callback(null, origin)
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origem não permitida pelo CORS'));
+    }
   },
-  credentials: true 
-}))
+  credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -46,7 +52,8 @@ app.use((error, req, res, next) => {
   console.error(error);
   const status = error.statusCode || 500;
   const message = error.message || 'Erro interno do servidor';
-  res.status(status).json({ message, data: error.data });
+  const data = error.data || [{ msg: message }]; 
+  res.status(status).json({ data, status });
 });
 
 // Conexão MongoDB e inicialização

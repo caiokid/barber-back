@@ -1,7 +1,9 @@
+import crypto from 'crypto';
 import { validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
+import sendEmail from '../utils/sendEmail.js';
 
 const signup = async (req, res, next) => {
   try {
@@ -40,7 +42,7 @@ const login = async (req, res, next) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
+      const error = new Error('Validação falhou');
       error.statusCode = 422;
       error.data = errors.array();
       throw error;
@@ -49,15 +51,15 @@ const login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      const error = new Error('E-mail não encontrado! Por favor, verifique suas credenciais.');
-      error.statusCode = 404;
+      const error = new Error('Credenciais inválidas.');
+      error.statusCode = 401;
       throw error;
     }
 
     const isEqual = await bcrypt.compare(password, user.password);
 
     if (!isEqual) {
-      const error = new Error('Senha incorreta!');
+      const error = new Error('Credenciais inválidas.');
       error.statusCode = 401;
       throw error;
     }
@@ -76,7 +78,7 @@ const login = async (req, res, next) => {
     });
 
     res.status(200).json({
-      message: 'Login successful!',
+      message: 'Logado com sucesso!',
       userId: user._id.toString()
     });
 
@@ -86,4 +88,90 @@ const login = async (req, res, next) => {
   }
 };
 
-export default { signup, login };
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error('Validação falhou');
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+
+    const user = await User.findOne({ email });
+
+    // Sempre retorna 200 para não revelar se o email existe
+    if (!user) {
+      return res.status(200).json({ message: 'Se este e-mail estiver cadastrado, você receberá as instruções em breve.' });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    user.resetToken = hashedToken;
+    user.resetTokenExpira = Date.now() + 60 * 60 * 1000;
+    await user.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${rawToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Recuperação de senha',
+      html: `
+        <p>Olá, ${user.name}!</p>
+        <p>Clique no link abaixo para redefinir sua senha. O link expira em 1 hora.</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+        <p>Se você não solicitou isso, ignore este e-mail.</p>
+      `
+    });
+
+    res.status(200).json({ message: 'Se este e-mail estiver cadastrado, você receberá as instruções em breve.' });
+
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 500;
+    next(err);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error('Validação falhou');
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetToken: hashedToken,
+      resetTokenExpira: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      const error = new Error('Token inválido ou expirado.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    user.password = await bcrypt.hash(password, 12);
+    user.resetToken = undefined;
+    user.resetTokenExpira = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Senha redefinida com sucesso!' });
+
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 500;
+    next(err);
+  }
+};
+
+export default { signup, login, forgotPassword, resetPassword };
