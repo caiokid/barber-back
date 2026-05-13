@@ -43,8 +43,8 @@ const getEmploysHome = async (req, res, next) => {
       throw error;
     }
 
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-
+    const baseUrl = process.env.NODE_ENV === 'production' ? `https://${req.get('host')}` : `http://${req.get('host')}`;
+    
     const barbers = result.map(barber => ({
       id: barber._id,
       name: barber.name,
