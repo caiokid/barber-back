@@ -1,19 +1,16 @@
-import nodemailer from 'nodemailer';
+import { BrevoClient, BrevoEnvironment } from '@getbrevo/brevo';
+
+const client = new BrevoClient({
+  apiKey: process.env.BREVO_API_KEY,
+  environment: BrevoEnvironment.Production
+});
 
 const sendEmail = async ({ to, subject, html }) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-
-  await transporter.sendMail({
-    from: `"Barbearia" <${process.env.EMAIL_USER}>`,
-    to,
+  await client.transactionalEmails.sendTransacEmail({
+    sender: { email: 'caioviniciusfranca@gmail.com', name: 'King Size Barbearia' },
+    to: [{ email: to }],
     subject,
-    html
+    htmlContent: html
   });
 };
 
